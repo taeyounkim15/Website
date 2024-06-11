@@ -1,6 +1,32 @@
 from flask import Flask, render_template
 from google.cloud import datastore
-import datetime
+from datetime import datetime, timezone
+import gspread
+from google.oauth2.service_account import Credentials
+
+# ============================
+# Let's try to bring in the data from the Spreadsheet
+CREDENTIALS_FILE = 'credentials.json'
+
+# Define the scope and authenticate
+SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPE)
+client = gspread.authorize(creds)
+
+# Google Spreadsheet ID and sheet name
+SPREADSHEET_ID = '1hEfWYWhbnfN3uURJTQNaDV3QAEEyMzKtmV888E0fA8M'
+SHEET_NAME = 'DB'
+
+# Open the spreadsheet by ID and sheet by name
+spreadsheet = client.open_by_key(SPREADSHEET_ID)
+worksheet = spreadsheet.worksheet(SHEET_NAME)
+
+data = worksheet.get_all_values()
+print(data[0
+
+])
+
+# ============================
 
 datastore_client = datastore.Client()
 
@@ -26,7 +52,7 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     # Store the current access time in Datastore.
-    store_time(datetime.datetime.now(tz=datetime.timezone.utc))
+    store_time(datetime.now(tz=timezone.utc))
 
     # Fetch the most recent 10 access times from Datastore.
     times = fetch_times(10)
