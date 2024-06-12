@@ -11,10 +11,22 @@
     <h1> Bond Calculator </h1>
     <p> #Yeah #Baby </p>
 
-    <h2>Last 10 visits</h2>
-    {% for time in times %}
-    <p>{{ time['timestamp'] }}</p>
-    {% endfor %}
+
+
+    <!-- <input type="radio" id="html" name="fav_language" value="BAF123020">
+    <label for="html">BAF123020</label><br>
+    <input type="radio" id="css" name="fav_language" value="GEG121022">
+    <label for="css">GEG121022</label><br>
+    <input type="radio" id="javascript" name="fav_language" value="CII121029">
+    <label for="javascript">CII121029</label> -->
+
+    <h2>Bond Code</h2>
+    <select for="code"> Choose the Bond Code :
+      {% for code in codes %}
+        <option value="{{ time }}">{{ code }}</option>
+      {% endfor %}
+
+    </select>
     
     {% endblock %}
   </body>
