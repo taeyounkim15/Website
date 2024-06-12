@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from google.cloud import datastore
 from datetime import datetime, timezone
 import gspread
@@ -63,7 +63,6 @@ def home():
     data = worksheet.get_all_values()
     df = pd.DataFrame(data[1:], columns=data[0])
 
-    # print(data[0])
     # ============================
 
 
@@ -77,6 +76,12 @@ def home():
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+@app.route('/update_data', methods=['POST'])
+def update_data():
+    selected_option = request.json.get('selected_option')
+    # new_data = data.get(selected_option, 'No data available')  # Fetch the data based on the selected option
+    return jsonify(new_data=selected_option)
     
 if __name__ == "__main__":
     # app.run(debug=True)
