@@ -57,6 +57,10 @@
             <td id="dscrptn">{{ exp }}</td>
           </tr>
           <tr>
+            <th>Par Value</th>
+            <td id="parvalu">{{d_send[0]['Par value']}}</td>
+          </tr>
+          <tr>
             <th>Price Yield (%)</th>
             <td>
               <input type="number" id="prcyld" class="form-control" placeholder="{{d_send[0]['Price Yield'] * 100}}">
@@ -71,16 +75,58 @@
         </tbody>
       </table>
 
+      <div class="row">
+        <div class="col">
+          <label for="reverso">Price to reverse : </label>
+          <input type="text" id="reverso" name="reverso">
+          <button type="button" class="btn btn-outline-danger">Reverse</button>
+        </div>
+        <div class="col">
+          <button type="button" class="btn btn-outline-success">Recalculate</button>
+        </div>
+      </div>
 
       <div class="row">
-        <button type="button" class="btn btn-outline-success">Recalculate</button>
+        <div class="col">
+          <div id="reversoyld">Yield reversed : </div>
+        </div>
+        <div class="col">
+
+        </div>
+        
       </div>
 
       <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
         <div class="progress-bar" style="width: 0%"></div>
       </div>
+      
+      <p class="lead" id="ptd">Trading Price : {{ptd}}  VND</p>
+      <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
 
       
+
+      <div class="container mt-5">
+        <table class="table table-striped" id="Tcashflow">
+            <thead>
+                <tr>
+                    {% for column in cfT_col %}
+                        <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in cfT_rec %}
+                    <tr>
+                        {% for column in cfT_col %}
+                            <td>{{ record[column] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
 
 
     <!-- container -->
@@ -106,7 +152,36 @@
                       $('#exrtday').html(response.d_send[0]['Ex right day']);
                       $('#freqncy').html(response.d_send[0]['Coupon payment']);
                       $('#dscrptn').html(response.exp);
+                      $('#parvalu').html(response.d_send[0]['Par value']);
 
+                      $('#prcyld').attr('placeholder', parseFloat(response.d_send[0]['Price Yield'] * 100).toFixed(3));
+
+                      $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+                      $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+
+                      // Update the options of the select element
+                      var select = $('#code');
+                      select.empty(); // Clear existing options
+                      
+                      // Rebuild options based on updated data
+                      for (var i = 0; i < response.codes.length; i++) {
+                          var option = $('<option>').attr('value', response.codes[i]).text(response.codes[i]);
+                          select.append(option);
+                      }
+
+                      // Update the table content
+                      var table = $('#Tcashflow');
+                      table.find('tbody').empty(); // Clear existing rows
+                      
+                      // Rebuild table rows with updated data
+                      for (var i = 0; i < response.cfT_rec.length; i++) {
+                          var row = $('<tr>');
+                          for (var j = 0; j < response.cfT_col.length; j++) {
+                              var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
+                              row.append(cell);
+                          }
+                          table.find('tbody').append(row);
+                      }
                   },
                   error: function(error) {
                       console.log('Error:', error);
