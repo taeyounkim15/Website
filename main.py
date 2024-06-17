@@ -188,6 +188,8 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
     df = df[msk].copy()
     df['i'] = range(len(df))
 
+    # print(df)
+
     df["CF"] = df["Coupon"]
     df.loc[df.index[-1], 'CF'] = df.loc[df.index[-1], 'CF'] + par
     df["DC CF"] = df["CF"] / (1 + pry * frq / 12)**df["i"]
@@ -329,7 +331,49 @@ def update_data():
 
     # new_data = data.get(selected_option, 'No data available')  # Fetch the data based on the selected option
     return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+
+@app.route('/recalculate', methods=['POST'])
+def recalculate():
+    df1, df4, df5 = bring_the_dfs()
+    selected_option = request.json.get('resultCode')
+    ccase = return_ccase(selected_option, df1)
+
+    # par = df1.loc[selected_option, "Par value"]
+    par = int(request.json.get('parvalu')) # integer
+    # print("par      " )
+    # print(par)
+    # print(type(par))
+    # isd = df1.loc[selected_option, "Issue Date"]
+    isd = datetime.strptime(request.json.get('isudate'), "%Y-%m-%d").date() # datetime.date
+    # mtd = df1.loc[selected_option, "Maturity Date"]
+    mtd = datetime.strptime(request.json.get('matdate'), "%Y-%m-%d").date()
+    # trd = date.today()
+    if request.json.get('trddte') == '' :
+        trd = date.today()
+    else :
+        trd = datetime.strptime(request.json.get('trddte'), "%Y-%m-%d").date()
+    # exr = df1.loc[selected_option, "Ex right day"]
+    exr = int(request.json.get('exrtday'))
+    # frq = df1.loc[selected_option, "Coupon payment"]
+    frq = request.json.get('freqncy')
+    # pry = df1.loc[selected_option, "Price Yield"]
+    pry = float(request.json.get('prcyld')) / 100
+    cp1 = df1.loc[selected_option, "Coupon% 1"]
+    cpR = df1.loc[selected_option, "Coupon% Ref"]
+    cpk = df1.loc[selected_option, "Coupon% k1"]
+    cpkY= df1.loc[selected_option, "k1 years"]
+    cpk2= df1.loc[selected_option, "Coupon% k2"]
+
+    cfT, ptd, sumcf, sumdc, d_nxt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT['Date [yyyy-mm-dd]'] = cfT['Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    cfT['X right'] = cfT['X right'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    cfT_col = cfT.columns.tolist()
+    cfT_rec = cfT.to_dict(orient='records')
     
+    # return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+    return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+
+
 if __name__ == "__main__":
     # app.run(debug=True)
     app.run(host="127.0.0.1", port=8080, debug=True)

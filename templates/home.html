@@ -63,13 +63,13 @@
           <tr>
             <th>Price Yield (%)</th>
             <td>
-              <input type="number" id="prcyld" class="form-control" placeholder="{{d_send[0]['Price Yield'] * 100}}">
+              <input type="number" id="prcyld" class="form-control" value="{{d_send[0]['Price Yield'] * 100}}">
             </td>
           </tr>
           <tr>
             <th>Trading Date</th>
             <td>
-              <input type="date" id="trddte" class="form-control" placeholder="today">
+              <input type="date" id="trddte" class="form-control">
             </td>
           </tr>
         </tbody>
@@ -82,7 +82,7 @@
           <button type="button" class="btn btn-outline-danger">Reverse</button>
         </div>
         <div class="col">
-          <button type="button" class="btn btn-outline-success">Recalculate</button>
+          <button type="button" class="btn btn-outline-success" id="recalculate-btn">Recalculate</button>
         </div>
       </div>
 
@@ -128,13 +128,11 @@
 
 
 
-
     <!-- container -->
     </div> 
 
-
-
     <!--  ####################scripts################  -->
+    <!-- UPDATING DATA -->
     <script>
       $(document).ready(function() {
           $('#code').change(function() {
@@ -190,6 +188,68 @@
           });
       });
     </script>
+
+    <!-- RECALCULATE DATA -->
+     <script>
+      $(document).ready(function() {
+        $('#recalculate-btn').click(function() {
+            var resultCode = $('#resultCode').text();
+            var prcyld = $('#prcyld').val();
+            var trddte = $('#trddte').val();
+            var isudate = $('#isudate').text();
+            var matdate = $('#matdate').text();
+            var exrtday = $('#exrtday').text();
+            var freqncy = $('#freqncy').text();
+            var dscrptn = $('#dscrptn').text();
+            var parvalu = $('#parvalu').text();
+
+            $.ajax({
+                type: 'POST',
+                url: '/recalculate',  // Adjust the URL as per your Flask route
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    'resultCode': resultCode,
+                    'prcyld'  : prcyld,
+                    'trddte'  : trddte,
+                    'isudate' : isudate,
+                    'matdate' : matdate,
+                    'exrtday' : exrtday,
+                    'freqncy' : freqncy,
+                    'dscrptn' : dscrptn,
+                    'parvalu' : parvalu
+                }),
+                success: function(response) {
+                    $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+                    $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+
+                    // Update the table content
+                    var table = $('#Tcashflow');
+                      table.find('tbody').empty(); // Clear existing rows
+                      
+                      // Rebuild table rows with updated data
+                      for (var i = 0; i < response.cfT_rec.length; i++) {
+                          var row = $('<tr>');
+                          for (var j = 0; j < response.cfT_col.length; j++) {
+                              var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
+                              row.append(cell);
+                          }
+                          table.find('tbody').append(row);
+                      }
+
+
+
+                    console.log('Data sent successfully');
+                    // Optionally handle response from Flask
+                },
+
+                
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+     </script>
     
   </body>
 </html>
