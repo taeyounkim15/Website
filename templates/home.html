@@ -79,7 +79,7 @@
         <div class="col">
           <label for="reverso">Price to reverse : </label>
           <input type="text" id="reverso" name="reverso">
-          <button type="button" class="btn btn-outline-danger">Reverse</button>
+          <button type="button" class="btn btn-outline-danger" id="reverso-btn">Reverse</button>
         </div>
         <div class="col">
           <button type="button" class="btn btn-outline-success" id="recalculate-btn">Recalculate</button>
@@ -90,10 +90,6 @@
         <div class="col">
           <div id="reversoyld">Yield reversed : </div>
         </div>
-        <div class="col">
-
-        </div>
-        
       </div>
 
       <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
@@ -236,13 +232,59 @@
                           table.find('tbody').append(row);
                       }
 
+                    console.log('Data sent successfully');
+                    // Optionally handle response from Flask
+                },
 
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+    });
+     </script>
+
+     <!-- Reverse for Price Yield -->
+     <script>
+      $(document).ready(function() {
+        $('#reverso-btn').click(function() {
+            var resultCode = $('#resultCode').text();
+            var reverso = $('#reverso').val();
+            if(!reverso) {
+              alert("Please input the Price to reverse");
+              return;
+            }
+
+            var trddte = $('#trddte').val();
+            var isudate = $('#isudate').text();
+            var matdate = $('#matdate').text();
+            var exrtday = $('#exrtday').text();
+            var freqncy = $('#freqncy').text();
+            var dscrptn = $('#dscrptn').text();
+            var parvalu = $('#parvalu').text();
+
+            $.ajax({
+                type: 'POST',
+                url: '/reverso',  // Adjust the URL as per your Flask route
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    'resultCode': resultCode,
+                    'reverso'  : reverso,
+                    'trddte'  : trddte,
+                    'isudate' : isudate,
+                    'matdate' : matdate,
+                    'exrtday' : exrtday,
+                    'freqncy' : freqncy,
+                    'dscrptn' : dscrptn,
+                    'parvalu' : parvalu
+                }),
+                success: function(response) {
+                  $('#reversoyld').html('Yield reversed : ' + response.pry_solution + '%');
 
                     console.log('Data sent successfully');
                     // Optionally handle response from Flask
                 },
 
-                
                 error: function(error) {
                     console.error('Error:', error);
                 }

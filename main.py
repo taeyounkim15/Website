@@ -6,6 +6,7 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 import numpy as np
+from scipy.optimize import newton
 
 # Define a function to strip '%' and convert to float
 def strip_percent_and_divide(x):
@@ -16,6 +17,16 @@ def strip_percent_and_divide(x):
     except ValueError:
         return x
     
+# Function to calculate trading price based on pry
+def calculate_trading_price(pry, df, frq, k):
+    df['i'] = range(len(df))
+    df["DC CF"] = df["CF"] / (1 + pry * frq / 12)**df["i"]
+    return df["DC CF"].sum() / (1 + k * pry)
+
+# Target function for root finding
+def target_function(pry, df, trading_price, frq, k):
+    return calculate_trading_price(pry, df, frq, k) - trading_price
+
 def format_number(x):
     if isinstance(x, (int, float)):
         return "{:,}".format(x)
@@ -217,7 +228,116 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
 
     return dfF.reset_index()[["Date [yyyy-mm-dd]", 'X right', "Coupon", "CF", "DC CF", "CP rate(%)"]].copy(), ptd, df["CF"].sum(), sumdc, d_nxt
 
+def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq):
+    if frq == "quarterly" :
+        frq = 3
+    elif frq == "annually" :
+        frq = 12
+    elif frq == "semi-annually" :
+        frq = 6
+    else :
+        raise Warning("Frequency => incorrect value")
 
+    d_set = trd + relativedelta(days=1)
+
+    # Generate the list of dates
+    l_payd = []
+    paydX = isd + relativedelta(months=frq)  # Start from the first increment
+    i = 1
+    while paydX < mtd:
+        # l_payd.append(paydX)
+        l_payd.append(isd + relativedelta(months=frq*i))
+        paydX = l_payd[-1]
+        i += 1
+
+    l_days = []
+    paydX = isd
+    for x in l_payd :
+        l_days.append((x-paydX).days)
+        paydX = x
+
+    data = {"d"      : l_days,
+            "Date"   : l_payd}
+    df = pd.DataFrame(data)
+    # calculate the coupons
+    # if FIXED
+    if ccase == 0 :
+        df["CP rate(%)"] = cp1
+
+    # if 1st year fixed, and the rest are ref
+    elif ccase == 1 :
+        r_grp = cpR.split(', ')
+        # Extract the year from the Date column in df
+        df['year'] = df['Date'].apply(lambda x: x.year)
+
+        # Calculate the average for each year in df4
+        df4['average'] = df4[r_grp].mean(axis=1)
+
+        # Merge df with df4 on the year
+        df = df.merge(df4[['year', 'average']], on='year', how='left')
+        
+        # Rename the average column to cppp
+        df.rename(columns={'average': 'CP rate(%)'}, inplace=True)
+
+        df.loc[:int(12/frq)-1, 'CP rate(%)'] = cp1 # 1st year fixed coupon!!!!
+        df.loc[int(12/frq):, 'CP rate(%)'] = df.loc[int(12/frq):, 'CP rate(%)'] + cpk
+
+    elif ccase == 2 :
+        r_grp = cpR.split(', ')
+        # Extract the year from the Date column in df
+        df['year'] = df['Date'].apply(lambda x: x.year)
+
+        # Calculate the average for each year in df4
+        df4['average'] = df4[r_grp].mean(axis=1)
+
+        # Merge df with df4 on the year
+        df = df.merge(df4[['year', 'average']], on='year', how='left')
+        
+        # Rename the average column to cppp
+        df.rename(columns={'average': 'CP rate(%)'}, inplace=True)
+
+        # df.loc[:int(cpkY * 12/frq) - 1, 'CP rate(%)'] = cpk # 1st year fixed coupon!!!!
+        df.loc[:int(cpkY * 12/frq) - 1, 'CP rate(%)'] = df.loc[:int(cpkY * 12/frq) - 1, 'CP rate(%)'] + cpk
+        df.loc[int(cpkY * 12/frq):, 'CP rate(%)'] = df.loc[int(cpkY * 12/frq):, 'CP rate(%)'] + cpk2
+
+
+    # change df1.index[ind_a] to bcode.get()
+    # Check if b_code exists in df5['Bond_Code']
+    if selected_option in df5['Bond_Code'].values:
+        # Iterate over all rows in df5 with the given b_code
+        for _, row in df5[df5['Bond_Code'] == selected_option].iterrows():
+            coupon_date = row['Coupon_Date']
+            announced_rate = row['Announced_rate']
+            
+            # Update df['cppp'] where df['Date'] matches df5['Coupon_Date']
+            df.loc[df['Date'] == coupon_date, 'CP rate(%)'] = announced_rate
+
+
+    df["Coupon"] = par * df["CP rate(%)"] * df["d"] / 365
+    df["CF"] = df["Coupon"]
+    df.loc[df.index[-1], 'CF'] = df.loc[df.index[-1], 'CF'] + par
+
+    df["Date"] = pd.to_datetime(df["Date"])
+    df['X right'] = df['Date'] - pd.offsets.BusinessDay(n=exr)
+
+    df["Date"] = df["Date"].dt.date
+    df['X right'] = df['X right'].dt.date
+
+    msk = df["X right"] >= d_set
+    df = df[msk].copy()
+
+
+    d_nxt = df.iloc[0]['Date']
+    
+    if l_payd.index(d_nxt) == 0 :
+        d_prv = isd
+    else :
+        d_prv = l_payd[l_payd.index(d_nxt) -1]
+
+    k = (( d_nxt - d_set ).days * frq ) / (12 * (d_nxt - d_prv).days) 
+    df = df.round(3)
+
+    return df[["Date", 'X right', "Coupon", "CF"]], frq, k
 # datastore_client = datastore.Client()
 
 # def store_time(dt):
@@ -372,6 +492,38 @@ def recalculate():
     
     # return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
     return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+
+@app.route('/reverso', methods=['POST'])
+def reverso():
+    df1, df4, df5 = bring_the_dfs()
+    selected_option = request.json.get('resultCode')
+    ccase = return_ccase(selected_option, df1)
+
+    par = int(request.json.get('parvalu')) # integer
+    isd = datetime.strptime(request.json.get('isudate'), "%Y-%m-%d").date() # datetime.date
+    mtd = datetime.strptime(request.json.get('matdate'), "%Y-%m-%d").date()
+    if request.json.get('trddte') == '' :
+        trd = date.today()
+    else :
+        trd = datetime.strptime(request.json.get('trddte'), "%Y-%m-%d").date()
+    exr = int(request.json.get('exrtday'))
+    frq = request.json.get('freqncy')
+    # pry = float(request.json.get('prcyld')) / 100 #skip Price Yield for the reverso
+    cp1 = df1.loc[selected_option, "Coupon% 1"]
+    cpR = df1.loc[selected_option, "Coupon% Ref"]
+    cpk = df1.loc[selected_option, "Coupon% k1"]
+    cpkY= df1.loc[selected_option, "k1 years"]
+    cpk2= df1.loc[selected_option, "Coupon% k2"]
+
+    ### Different to Recalculate from this point on
+    ttt, fr1, k = cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq)
+
+    initial_guess = 0.07
+    trading_price = float(request.json.get('reverso'))
+
+    pry_solution = newton(target_function, initial_guess, args=(ttt, trading_price, fr1, k)) * 100
+
+    return jsonify(pry_solution = pry_solution)
 
 
 if __name__ == "__main__":
