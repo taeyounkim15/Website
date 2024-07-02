@@ -95,32 +95,43 @@
       <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
         <div class="progress-bar" style="width: 0%"></div>
       </div>
+
+      <div class="row">
+        <div class="col">
+          <p class="lead" id="ptd">Trading Price : {{ptd}}  VND</p>
+        </div>
+        <div class="col">
+          <p class="lead" id="abr">Absolute cash return after Tax : {{abr}} %</p>
+        </div>
+      </div>
       
-      <p class="lead" id="ptd">Trading Price : {{ptd}}  VND</p>
-      <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
+      <div class="row">
+        <div class="col">
+          <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
+        </div>
+      </div>
+      
 
       
 
-      <div class="container mt-5">
-        <table class="table table-striped" id="Tcashflow">
-            <thead>
-                <tr>
-                    {% for column in cfT_col %}
-                        <th>{{ column }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in cfT_rec %}
-                    <tr>
-                        {% for column in cfT_col %}
-                            <td>{{ record[column] }}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+      <table class="table table-striped" id="Tcashflow">
+          <thead>
+              <tr>
+                  {% for column in cfT_col %}
+                      <th>{{ column }}</th>
+                  {% endfor %}
+              </tr>
+          </thead>
+          <tbody>
+              {% for record in cfT_rec %}
+                  <tr>
+                      {% for column in cfT_col %}
+                          <td>{{ record[column] }}</td>
+                      {% endfor %}
+                  </tr>
+              {% endfor %}
+          </tbody>
+      </table>
 
 
 
@@ -148,9 +159,11 @@
                       $('#dscrptn').html(response.exp);
                       $('#parvalu').html(response.d_send[0]['Par value']);
 
-                      $('#prcyld').attr('placeholder', parseFloat(response.d_send[0]['Price Yield'] * 100).toFixed(3));
+                      $('#prcyld').attr('value', parseFloat(response.d_send[0]['Price Yield'] * 100).toFixed(3));
+                      // $('#prcyld').attr('value', 25);  parseFloat(response.abr * 100).toFixed(3)
 
                       $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+                      $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
                       $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
 
                       // Update the options of the select element
@@ -216,6 +229,7 @@
                 }),
                 success: function(response) {
                     $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+                    $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
                     $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
 
                     // Update the table content

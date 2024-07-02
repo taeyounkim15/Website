@@ -205,6 +205,8 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
     df.loc[df.index[-1], 'CF'] = df.loc[df.index[-1], 'CF'] + par
     df["DC CF"] = df["CF"] / (1 + pry * frq / 12)**df["i"]
 
+    total_cash_in = df["Coupon"].sum() * 0.95 + par
+
     sumdc = df["DC CF"].sum()
     d_nxt = df.iloc[0]['Date']
     
@@ -226,7 +228,7 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
     dfF = df.map(format_number)
     
 
-    return dfF.reset_index()[["Date [yyyy-mm-dd]", 'X right', "Coupon", "CF", "DC CF", "CP rate(%)"]].copy(), ptd, df["CF"].sum(), sumdc, d_nxt
+    return dfF.reset_index()[["Date [yyyy-mm-dd]", 'X right', "Coupon", "CF", "DC CF", "CP rate(%)"]].copy(), ptd, df["CF"].sum(), sumdc, d_nxt, total_cash_in
 
 def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq):
     if frq == "quarterly" :
@@ -338,6 +340,32 @@ def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, e
     df = df.round(3)
 
     return df[["Date", 'X right', "Coupon", "CF"]], frq, k
+
+def days_in_year(year):
+    """Return the number of days in a given year."""
+    return 366 if (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)) else 365
+
+def categorize_date_difference(date1, date2):
+    """Categorize the difference between two dates."""
+    if date1 > date2:
+        date1, date2 = date2, date1  # Ensure date1 is the earlier date
+
+    days_difference = 0
+    current_date = date1
+
+    while current_date.year < date2.year:
+        days_difference += days_in_year(current_date.year)
+        current_date = current_date.replace(year=current_date.year + 1, month=1, day=1)
+
+    days_difference += (date2 - current_date).days
+
+    if days_difference < 365:
+        return 0.001 #0.1%
+    elif 365 <= days_difference < 730:
+        return 0.002 #0.2%
+    else:
+        return 0.003 #0.3%
+
 # datastore_client = datastore.Client()
 
 # def store_time(dt):
@@ -394,11 +422,16 @@ def home():
     d_send = df1.iloc[[0]].to_dict(orient="records")
 
 
-    cfT, ptd, sumcf, sumdc, d_nxt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
 
-    return render_template("home.html", codes=df1.index.tolist(), d_send=d_send, exp = exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt)
+    fee_trd = categorize_date_difference(trd, mtd)
+    tot_investment = (1+fee_trd) * ptd
+    abr = (total_cash_input - tot_investment) / tot_investment / (mtd - trd).days * 365.25
+    abr = str(round(abr*100, 2))
+
+    return render_template("home.html", codes=df1.index.tolist(), d_send=d_send, exp = exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt, abr=abr)
     
 @app.route("/about")
 def about():
@@ -443,14 +476,19 @@ def update_data():
 
     # print(df4)
     # return
-    cfT, ptd, sumcf, sumdc, d_nxt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
     cfT['Date [yyyy-mm-dd]'] = cfT['Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT['X right'] = cfT['X right'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
 
+    fee_trd = categorize_date_difference(trd, mtd)
+    tot_investment = (1+fee_trd) * ptd
+    abr = (total_cash_input - tot_investment) / tot_investment / (mtd - trd).days * 365.25
+    abr = str(round(abr*100, 2))
+
     # new_data = data.get(selected_option, 'No data available')  # Fetch the data based on the selected option
-    return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+    return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr)
 
 @app.route('/recalculate', methods=['POST'])
 def recalculate():
@@ -484,14 +522,19 @@ def recalculate():
     cpkY= df1.loc[selected_option, "k1 years"]
     cpk2= df1.loc[selected_option, "Coupon% k2"]
 
-    cfT, ptd, sumcf, sumdc, d_nxt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
     cfT['Date [yyyy-mm-dd]'] = cfT['Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT['X right'] = cfT['X right'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
+
+    fee_trd = categorize_date_difference(trd, mtd)
+    tot_investment = (1+fee_trd) * ptd
+    abr = (total_cash_input - tot_investment) / tot_investment / (mtd - trd).days * 365.25
+    abr = str(round(abr*100, 2))
     
     # return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
-    return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
+    return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr)
 
 @app.route('/reverso', methods=['POST'])
 def reverso():
