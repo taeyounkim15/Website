@@ -189,6 +189,8 @@
                           }
                           table.find('tbody').append(row);
                       }
+
+                      alert("updated for " + selected_option)
                   },
                   error: function(error) {
                       console.log('Error:', error);
@@ -246,7 +248,8 @@
                           table.find('tbody').append(row);
                       }
 
-                    console.log('Data sent successfully');
+                    // console.log('Data sent successfully');
+                    alert('recalculation done')
                     // Optionally handle response from Flask
                 },
 

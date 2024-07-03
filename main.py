@@ -7,8 +7,9 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 import numpy as np
 from scipy.optimize import newton
-
-from dotenv import load_dotenv
+# from pymongo import MongoClient
+# import os
+# from dotenv import load_dotenv
 
 # Define a function to strip '%' and convert to float
 def strip_percent_and_divide(x):
@@ -382,10 +383,12 @@ def categorize_date_difference(date1, date2):
 #     return times
 
 app = Flask(__name__)
+# df1, df4, df5 = bring_mongo_dfs()
 
 @app.route("/")
 def home():
     df1, df4, df5 = bring_the_dfs()
+    # df1, df4, df5 = bring_mongo_dfs()
     ccase = return_ccase(df1.index[0], df1)
     selected_option = df1.index[0]
 
@@ -442,6 +445,7 @@ def about():
 @app.route('/update_data', methods=['POST'])
 def update_data():
     df1, df4, df5 = bring_the_dfs()
+    # df1, df4, df5 = bring_mongo_dfs()
     selected_option = request.json.get('selected_option')
     ccase = return_ccase(selected_option, df1)
 
@@ -495,6 +499,7 @@ def update_data():
 @app.route('/recalculate', methods=['POST'])
 def recalculate():
     df1, df4, df5 = bring_the_dfs()
+    # df1, df4, df5 = bring_mongo_dfs()
     selected_option = request.json.get('resultCode')
     ccase = return_ccase(selected_option, df1)
 
@@ -541,6 +546,7 @@ def recalculate():
 @app.route('/reverso', methods=['POST'])
 def reverso():
     df1, df4, df5 = bring_the_dfs()
+    # df1, df4, df5 = bring_mongo_dfs()
     selected_option = request.json.get('resultCode')
     ccase = return_ccase(selected_option, df1)
 
