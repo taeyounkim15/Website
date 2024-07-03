@@ -25,7 +25,9 @@ proto-plus==1.23.0
 protobuf==4.25.3
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
+pymongo==4.8.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2024.1
 requests==2.32.3
 requests-oauthlib==2.0.0

@@ -8,6 +8,8 @@ from dateutil.relativedelta import relativedelta
 import numpy as np
 from scipy.optimize import newton
 
+from dotenv import load_dotenv
+
 # Define a function to strip '%' and convert to float
 def strip_percent_and_divide(x):
     try:
