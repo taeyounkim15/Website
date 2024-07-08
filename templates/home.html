@@ -46,7 +46,10 @@
           </tr>
           <tr>
             <th scope="row">Ex right day</th>
-            <td id="exrtday">{{ d_send[0]['Ex right day'] }}</td>
+            <td>
+              <input type="number" id="exrtday" class="form-control" value="{{d_send[0]['Ex right day']}}">
+            </td>
+            <!-- <td id="exrtday">{{ d_send[0]['Ex right day'] }}</td> -->
           </tr>
           <tr>
             <th>Payment frequency</th>
@@ -109,6 +112,9 @@
         <div class="col">
           <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
         </div>
+        <div class="col">
+          <p class="lead", id="prv_xdt">Past X right day : {{prv_xdt}}</p>
+        </div>
       </div>
       
 
@@ -154,7 +160,8 @@
                       $('#cpntype').html(response.d_send[0]['Coupon Type'] );
                       $('#isudate').html(response.d_send[0]['Issue Date']);
                       $('#matdate').html(response.d_send[0]['Maturity Date']);
-                      $('#exrtday').html(response.d_send[0]['Ex right day']);
+                      // $('#exrtday').html(response.d_send[0]['Ex right day']);
+                      $('#exrtday').attr('value', parseFloat(response.d_send[0]['Ex right day']));
                       $('#freqncy').html(response.d_send[0]['Coupon payment']);
                       $('#dscrptn').html(response.exp);
                       $('#parvalu').html(response.d_send[0]['Par value']);
@@ -165,6 +172,7 @@
                       $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
                       $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
                       $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+                      $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
 
                       // Update the options of the select element
                       var select = $('#code');
@@ -209,7 +217,8 @@
             var trddte = $('#trddte').val();
             var isudate = $('#isudate').text();
             var matdate = $('#matdate').text();
-            var exrtday = $('#exrtday').text();
+            // var exrtday = $('#exrtday').text();
+            var exrtday = $('#exrtday').val()
             var freqncy = $('#freqncy').text();
             var dscrptn = $('#dscrptn').text();
             var parvalu = $('#parvalu').text();
@@ -233,6 +242,7 @@
                     $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
                     $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
                     $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+                    $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
 
                     // Update the table content
                     var table = $('#Tcashflow');

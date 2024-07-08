@@ -192,11 +192,13 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
 
     df["Coupon"] = par * df["CP rate(%)"] * df["d"] / 365
 
-    df["Date [yyyy-mm-dd]"] = pd.to_datetime(df["Date"])
-    df['X right'] = df['Date [yyyy-mm-dd]'] - pd.offsets.BusinessDay(n=exr)
+    df["Coupon Date [yyyy-mm-dd]"] = pd.to_datetime(df["Date"])
+    df['X right'] = df['Coupon Date [yyyy-mm-dd]'] - pd.offsets.BusinessDay(n=exr)
 
-    df["Date [yyyy-mm-dd]"] = df["Date [yyyy-mm-dd]"].dt.date
+    df["Coupon Date [yyyy-mm-dd]"] = df["Coupon Date [yyyy-mm-dd]"].dt.date
     df['X right'] = df['X right'].dt.date
+
+    prv_xdt = df[df['X right'] < d_set]['X right'].max()
 
     msk = df["X right"] >= d_set
     df = df[msk].copy()
@@ -231,7 +233,7 @@ def cashflow(df4, df5, selected_option, ccase, par, isd, mtd, trd, exr, cp1, cpR
     dfF = df.map(format_number)
     
 
-    return dfF.reset_index()[["Date [yyyy-mm-dd]", 'X right', "Coupon", "CF", "DC CF", "CP rate(%)"]].copy(), ptd, df["CF"].sum(), sumdc, d_nxt, total_cash_in
+    return dfF.reset_index()[["Coupon Date [yyyy-mm-dd]", 'X right', "Coupon", "CF", "DC CF", "CP rate(%)"]].copy(), ptd, df["CF"].sum(), sumdc, d_nxt, total_cash_in, prv_xdt
 
 def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq):
     if frq == "quarterly" :
@@ -427,7 +429,7 @@ def home():
     d_send = df1.iloc[[0]].to_dict(orient="records")
 
 
-    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input, prv_xdt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
 
@@ -436,7 +438,7 @@ def home():
     abr = (total_cash_input - tot_investment) / tot_investment / (mtd - trd).days * 365.25
     abr = str(round(abr*100, 2))
 
-    return render_template("home.html", codes=df1.index.tolist(), d_send=d_send, exp = exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt, abr=abr)
+    return render_template("home.html", codes=df1.index.tolist(), d_send=d_send, exp = exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt, abr=abr, prv_xdt=prv_xdt)
     
 @app.route("/about")
 def about():
@@ -482,8 +484,8 @@ def update_data():
 
     # print(df4)
     # return
-    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
-    cfT['Date [yyyy-mm-dd]'] = cfT['Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input, prv_xdt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT['Coupon Date [yyyy-mm-dd]'] = cfT['Coupon Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT['X right'] = cfT['X right'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
@@ -494,7 +496,7 @@ def update_data():
     abr = str(round(abr*100, 2))
 
     # new_data = data.get(selected_option, 'No data available')  # Fetch the data based on the selected option
-    return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr)
+    return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr, prv_xdt=prv_xdt.strftime('%Y-%m-%d'))
 
 @app.route('/recalculate', methods=['POST'])
 def recalculate():
@@ -529,8 +531,8 @@ def recalculate():
     cpkY= df1.loc[selected_option, "k1 years"]
     cpk2= df1.loc[selected_option, "Coupon% k2"]
 
-    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
-    cfT['Date [yyyy-mm-dd]'] = cfT['Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    cfT, ptd, sumcf, sumdc, d_nxt, total_cash_input, prv_xdt = cashflow(df4=df4, df5=df5, selected_option=selected_option, ccase = ccase, par=par, isd=isd, mtd=mtd, trd=trd, exr=exr, cp1=cp1, cpR=cpR, cpk=cpk, cpkY=cpkY, cpk2=cpk2, frq=frq, pry=pry)
+    cfT['Coupon Date [yyyy-mm-dd]'] = cfT['Coupon Date [yyyy-mm-dd]'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT['X right'] = cfT['X right'].apply(lambda x: x.strftime('%Y-%m-%d'))
     cfT_col = cfT.columns.tolist()
     cfT_rec = cfT.to_dict(orient='records')
@@ -541,7 +543,7 @@ def recalculate():
     abr = str(round(abr*100, 2))
     
     # return jsonify(new_data=selected_option, codes=df1.index.tolist(), d_send=d_send, exp=exp, cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'))
-    return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr)
+    return jsonify(cfT_col=cfT_col, cfT_rec=cfT_rec, ptd=int(ptd), d_nxt=d_nxt.strftime('%Y-%m-%d'), abr=abr, prv_xdt=prv_xdt.strftime('%Y-%m-%d'))
 
 @app.route('/reverso', methods=['POST'])
 def reverso():
