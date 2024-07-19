@@ -321,8 +321,11 @@ def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, e
 
 
     df["Coupon"] = par * df["CP rate(%)"] * df["d"] / 365
+    df["Coupon_int"] = df["Coupon"] * 0.55
     df["CF"] = df["Coupon"]
+    df["CF_int"] = df["Coupon_int"]
     df.loc[df.index[-1], 'CF'] = df.loc[df.index[-1], 'CF'] + par
+    df.loc[df.index[-1], 'CF_int'] = df.loc[df.index[-1], 'CF_int'] + par
 
     df["Date"] = pd.to_datetime(df["Date"])
     df['X right'] = df['Date'] - pd.offsets.BusinessDay(n=exr)
@@ -344,7 +347,7 @@ def cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, e
     k = (( d_nxt - d_set ).days * frq ) / (12 * (d_nxt - d_prv).days) 
     df = df.round(3)
 
-    return df[["Date", 'X right', "Coupon", "CF"]], frq, k
+    return df[["Date", 'X right', "Coupon", "CF"]], df[["Date", "X right", "Coupon_int", "CF_int"]], frq, k
 
 def days_in_year(year):
     """Return the number of days in a given year."""
@@ -569,14 +572,16 @@ def reverso():
     cpk2= df1.loc[selected_option, "Coupon% k2"]
 
     ### Different to Recalculate from this point on
-    ttt, fr1, k = cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq)
+    ttt, ttt_i, fr1, k = cashflow_for_reverse(selected_option, df4, df5, ccase, par, isd, mtd, trd, exr, cp1, cpR, cpk, cpkY, cpk2, frq)
+    ttt_i.rename(columns={"Coupon_int": "Coupon", "CF_int": "CF"}, inplace=True)
 
     initial_guess = 0.07
     trading_price = float(request.json.get('reverso'))
 
     pry_solution = newton(target_function, initial_guess, args=(ttt, trading_price, fr1, k)) * 100
+    pry_solution_int = newton(target_function, initial_guess, args=(ttt_i, trading_price, fr1, k)) * 100
 
-    return jsonify(pry_solution = pry_solution)
+    return jsonify(pry_solution = pry_solution, pry_solution_int=pry_solution_int)
 
 
 if __name__ == "__main__":
