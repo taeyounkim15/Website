@@ -579,7 +579,7 @@ def reverso():
     trading_price = float(request.json.get('reverso'))
 
     pry_solution = newton(target_function, initial_guess, args=(ttt, trading_price, fr1, k)) * 100
-    pry_solution_int = newton(target_function, initial_guess, args=(ttt_i, trading_price, fr1, k)) * 100
+    pry_solution_int = newton(target_function, initial_guess/2, args=(ttt_i, trading_price, fr1, k)) * 100
 
     return jsonify(pry_solution = pry_solution, pry_solution_int=pry_solution_int)
 

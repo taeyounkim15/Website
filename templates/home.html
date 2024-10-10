@@ -17,11 +17,18 @@
       </div>
 
       <div class="row">  
-        <select class="form-select form-select-lg mb-3" name="code" id="code"> Choose the Bond Code :
-          {% for code in codes %}
-            <option value="{{ code }}">{{ code }}</option>
-          {% endfor %}
-        </select>
+        <div class="col">
+          <select class="form-select form-select-lg mb-3" name="code" id="code"> Choose the Bond Code :
+            {% for code in codes %}
+              <option value="{{ code }}">{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col">
+          <div id="loading" style="display: none;">
+            Loading...
+          </div>
+        </div>
       </div>
 
       <table class="table table-sm">
@@ -156,6 +163,9 @@
                   url: '/update_data',
                   contentType: 'application/json',
                   data: JSON.stringify({ 'selected_option': selected_option }),
+                  beforeSend: function(){
+                    $("#loading").show();
+                  },
                   success: function(response) {
                       $('#resultCode').html(response.new_data);
                       $('#cpntype').html(response.d_send[0]['Coupon Type'] );
@@ -199,10 +209,14 @@
                           table.find('tbody').append(row);
                       }
 
-                      alert("updated for " + selected_option)
+                      // alert("updated for " + selected_option)
+                  },
+                  complete: function() {
+                    $('#loading').hide();
                   },
                   error: function(error) {
-                      console.log('Error:', error);
+                      $('#loading').hide();
+                      alert('Something went wrong!');
                   }
               });
           });
@@ -239,6 +253,9 @@
                     'dscrptn' : dscrptn,
                     'parvalu' : parvalu
                 }),
+                beforeSend: function(){
+                    $("#loading").show();
+                  },
                 success: function(response) {
                     $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
                     $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
@@ -260,13 +277,16 @@
                       }
 
                     // console.log('Data sent successfully');
-                    alert('recalculation done')
+                    // alert('recalculation done')
                     // Optionally handle response from Flask
                 },
-
+                complete: function() {
+                    $('#loading').hide();
+                  },
                 error: function(error) {
-                    console.error('Error:', error);
-                }
+                    $('#loading').hide();
+                    alert('Something went wrong!');
+                  }
             });
         });
     });
@@ -306,6 +326,9 @@
                     'dscrptn' : dscrptn,
                     'parvalu' : parvalu
                 }),
+                beforeSend: function(){
+                    $("#loading").show();
+                  },
                 success: function(response) {
                   $('#reversoyld').html('Yield reversed (domestic): ' + response.pry_solution + '%');
                   $('#reversoyld_inter').html('Yield reversed (international): ' + response.pry_solution_int + '%')
@@ -313,14 +336,31 @@
                   console.log('Data sent successfully');
                   // Optionally handle response from Flask
                 },
-
+                complete: function() {
+                    $('#loading').hide();
+                  },
                 error: function(error) {
-                    console.error('Error:', error);
+                    $('#loading').hide();
+                    alert('Something went wrong!');
                 }
             });
         });
     });
      </script>
+
+    <style>
+      #loading {
+          font-size: 24px;          /* Increase font size */
+          color: blue;             /* Set text color */
+          /*background-color: red;     Set background color */
+          /*padding: 20px;             Add some padding for space inside the div */
+          /* border-radius: 10px;      /* Make the corners rounded */
+          /*text-align: center;       /* Center the text */
+          /*width: 200px;             /* Set a specific width */
+          margin: 0 auto;           /* Center the div horizontally */
+      }
+    </style>
+
     
   </body>
 </html>
