@@ -1,369 +1,394 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ASAM KR-VN</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  </head>
-  <body>    
-    <div class="container">
 
-      <div class="row">
-        <h1> Bond Calculator </h1>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASAM KR-VN</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="row">
+      <h1> Bond Calculator </h1>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <select class="form-select form-select-lg mb-3" name="code" id="code"> Choose the Bond Code :
+          <option value="" disabled selected>Choose your bond</option> <!-- Placeholder option -->
+          {% for code in codes %}
+          <option value="{{ code }}">{{ code }}</option>
+          {% endfor %}
+        </select>
       </div>
-
-      <div class="row">  
-        <div class="col">
-          <select class="form-select form-select-lg mb-3" name="code" id="code"> Choose the Bond Code :
-            <option value="" disabled selected>Choose your bond</option>  <!-- Placeholder option -->
-            {% for code in codes %}
-              <option value="{{ code }}">{{ code }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col">
-          <div id="loading" style="display: none;">
-            Loading...
-          </div>
+      <div class="col">
+        <div id="loading" style="display: none;">
+          Loading...
         </div>
       </div>
+    </div>
 
-      <table class="table table-sm">
-        <!-- <thead>
+    <table class="table table-sm">
+      <!-- <thead>
           <tr>
             <th scope="col">Coupon Conditions</th>
             <th scope="col">For dis bond nha</th>
           </tr>
         </thead> -->
-        <tbody>
-          <tr>
-            <th scope="row">Code</th>
-            <td id="resultCode">{{ codes[0] }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Issue Date</th>
-            <td id="isudate">{{ d_send[0]['Issue Date'] }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Maturity Date</th>
-            <td id="matdate">{{ d_send[0]['Maturity Date'] }}</td>
-          </tr>
-          <tr>
-            <th scope="row">Ex right day</th>
-            <td>
-              <input type="number" id="exrtday" class="form-control" value="{{d_send[0]['Ex right day']}}">
-            </td>
-            <!-- <td id="exrtday">{{ d_send[0]['Ex right day'] }}</td> -->
-          </tr>
-          <tr>
-            <th>Payment frequency</th>
-            <td id="freqncy">{{ d_send[0]['Coupon payment'] }}</td>
-          </tr>
-          <tr>
-            <th>Coupon description</th>
-            <td id="dscrptn">{{ exp }}</td>
-          </tr>
-          <tr>
-            <th>Par Value</th>
-            <td id="parvalu">{{d_send[0]['Par value']}}</td>
-          </tr>
-          <tr>
-            <th>Price Yield (%)</th>
-            <td>
-              <input type="number" id="prcyld" class="form-control" value="{{d_send[0]['Price Yield'] * 100}}">
-            </td>
-          </tr>
-          <tr>
-            <th>Trading Date</th>
-            <td>
-              <input type="date" id="trddte" class="form-control">
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <tbody>
+        <tr>
+          <th scope="row">Code</th>
+          <td id="resultCode">{{ codes[0] }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Issue Date</th>
+          <td id="isudate">{{ d_send[0]['Issue Date'] }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Maturity Date</th>
+          <td id="matdate">{{ d_send[0]['Maturity Date'] }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Ex right day</th>
+          <td>
+            <input type="number" id="exrtday" class="form-control" value="{{d_send[0]['Ex right day']}}">
+          </td>
+          <!-- <td id="exrtday">{{ d_send[0]['Ex right day'] }}</td> -->
+        </tr>
+        <tr>
+          <th>Payment frequency</th>
+          <td id="freqncy">{{ d_send[0]['Coupon payment'] }}</td>
+        </tr>
+        <tr>
+          <th>Coupon description</th>
+          <td id="dscrptn">{{ exp }}</td>
+        </tr>
+        <tr>
+          <th>Par Value</th>
+          <td id="parvalu">{{d_send[0]['Par value']}}</td>
+        </tr>
+        <tr>
+          <th>Price Yield (%)</th>
+          <td>
+            <input type="number" id="prcyld" class="form-control" value="{{d_send[0]['Price Yield'] * 100}}">
+          </td>
+        </tr>
+        <tr>
+          <th>Trading Date</th>
+          <td>
+            <input type="date" id="trddte" class="form-control">
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <div class="row">
-        <div class="col">
-          <label for="reverso">Price to reverse : </label>
-          <input type="text" id="reverso" name="reverso">
-          <button type="button" class="btn btn-outline-danger" id="reverso-btn">Reverse</button>
-        </div>
-        <div class="col">
-          <button type="button" class="btn btn-outline-success" id="recalculate-btn">Recalculate</button>
-        </div>
+    <div class="row">
+      <div class="col">
+        <label for="reverso">Price to reverse : </label>
+        <input type="text" id="reverso" name="reverso">
+        <button type="button" class="btn btn-outline-danger" id="reverso-btn">Reverse</button>
       </div>
-
-      <div class="row">
-        <div class="col">
-          <div id="reversoyld">Yield reversed (domestic): </div>
-          <div id="reversoyld_inter">Yield reversed (international): </div>
-        </div>
+      <div class="col">
+        <button type="button" class="btn btn-outline-success" id="recalculate-btn">Recalculate</button>
       </div>
+    </div>
 
-      <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar" style="width: 0%"></div>
+    <div class="row">
+      <div class="col">
+        <div id="reversoyld">Yield reversed (domestic): </div>
+        <div id="reversoyld_inter">Yield reversed (international): </div>
       </div>
+    </div>
 
-      <div class="row">
-        <div class="col">
-          <p class="lead" id="ptd">Trading Price : {{ptd}}  VND</p>
-        </div>
-        <div class="col">
-          <p class="lead" id="abr">Absolute cash return after Tax : {{abr}} %</p>
-        </div>
+    <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0"
+      aria-valuemax="100">
+      <div class="progress-bar" style="width: 0%"></div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <p class="lead" id="ptd">Trading Price : {{ptd}} VND</p>
       </div>
-      
-      <div class="row">
-        <div class="col">
-          <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
-        </div>
-        <div class="col">
-          <p class="lead", id="prv_xdt">Past X right day : {{prv_xdt}}</p>
-        </div>
+      <div class="col">
+        <p class="lead" id="abr">Absolute cash return after Tax : {{abr}} %</p>
       </div>
-      
+    </div>
 
-      
+    <div class="row">
+      <div class="col">
+        <p class="lead" id="d_nxt">Next coupon Date : {{d_nxt}}</p>
+      </div>
+      <div class="col">
+        <p class="lead" , id="prv_xdt">Past X right day : {{prv_xdt}}</p>
+      </div>
+    </div>
 
-      <table class="table table-striped" id="Tcashflow">
-          <thead>
-              <tr>
-                  {% for column in cfT_col %}
-                      <th>{{ column }}</th>
-                  {% endfor %}
-              </tr>
-          </thead>
-          <tbody>
-              {% for record in cfT_rec %}
-                  <tr>
-                      {% for column in cfT_col %}
-                          <td>{{ record[column] }}</td>
-                      {% endfor %}
-                  </tr>
-              {% endfor %}
-          </tbody>
-      </table>
+
+
+
+    <table class="table table-striped" id="Tcashflow">
+      <thead>
+        <tr>
+          {% for column in cfT_col %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in cfT_rec %}
+        <tr>
+          {% for column in cfT_col %}
+          <td>{{ record[column] }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
 
 
     <!-- container -->
-    </div> 
+  </div>
 
-    <!--  ####################scripts################  -->
-    <!-- UPDATING DATA -->
-    <script>
-      $(document).ready(function() {
-          $('#code').change(function() {
-              var selected_option = $(this).val();
-              $.ajax({
-                  type: 'POST',
-                  url: '/update_data',
-                  contentType: 'application/json',
-                  data: JSON.stringify({ 'selected_option': selected_option }),
-                  beforeSend: function(){
-                    $("#loading").show();
-                  },
-                  success: function(response) {
-                      $('#resultCode').html(response.new_data);
-                      $('#cpntype').html(response.d_send[0]['Coupon Type'] );
-                      $('#isudate').html(response.d_send[0]['Issue Date']);
-                      $('#matdate').html(response.d_send[0]['Maturity Date']);
-                      // $('#exrtday').html(response.d_send[0]['Ex right day']);
-                      $('#exrtday').attr('value', parseFloat(response.d_send[0]['Ex right day']));
-                      $('#freqncy').html(response.d_send[0]['Coupon payment']);
-                      $('#dscrptn').html(response.exp);
-                      $('#parvalu').html(response.d_send[0]['Par value']);
+  <!--  ####################scripts################  -->
+  <!-- UPDATING DATA -->
+  <script>
+    $(document).ready(function () {
+      $('#code').change(function () {
+        var selected_option = $(this).val();
+        $.ajax({
+          type: 'POST',
+          url: '/update_data',
+          contentType: 'application/json',
+          data: JSON.stringify({ 'selected_option': selected_option }),
+          beforeSend: function () {
+            $("#loading").show();
+          },
+          success: function (response) {
+            $('#resultCode').html(response.new_data);
+            $('#cpntype').html(response.d_send[0]['Coupon Type']);
+            $('#isudate').html(response.d_send[0]['Issue Date']);
+            $('#matdate').html(response.d_send[0]['Maturity Date']);
+            // $('#exrtday').html(response.d_send[0]['Ex right day']);
+            $('#exrtday').attr('value', parseFloat(response.d_send[0]['Ex right day']));
+            $('#freqncy').html(response.d_send[0]['Coupon payment']);
+            $('#dscrptn').html(response.exp);
+            $('#parvalu').html(response.d_send[0]['Par value']);
 
-                      $('#prcyld').attr('value', parseFloat(response.d_send[0]['Price Yield'] * 100).toFixed(3));
-                      // $('#prcyld').attr('value', 25);  parseFloat(response.abr * 100).toFixed(3)
+            $('#prcyld').attr('value', parseFloat(response.d_send[0]['Price Yield'] * 100).toFixed(3));
+            // $('#prcyld').attr('value', 25);  parseFloat(response.abr * 100).toFixed(3)
 
-                      $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
-                      $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
-                      $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
-                      $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
+            $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+            $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
+            $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+            $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
 
-                      // Update the options of the select element
-                      var select = $('#code');
-                      select.empty(); // Clear existing options
-                      
-                      // Add the placeholder option
-                      $('#code').append('<option value="" disabled selected>Choose your bond</option>');
-                      // Rebuild options based on updated data
-                      for (var i = 0; i < response.codes.length; i++) {
-                          var option = $('<option>').attr('value', response.codes[i]).text(response.codes[i]);
-                          select.append(option);
-                      }
+            // Update the options of the select element
+            var select = $('#code');
+            select.empty(); // Clear existing options
 
-                      // Update the table content
-                      var table = $('#Tcashflow');
-                      table.find('tbody').empty(); // Clear existing rows
-                      
-                      // Rebuild table rows with updated data
-                      for (var i = 0; i < response.cfT_rec.length; i++) {
-                          var row = $('<tr>');
-                          for (var j = 0; j < response.cfT_col.length; j++) {
-                              var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
-                              row.append(cell);
-                          }
-                          table.find('tbody').append(row);
-                      }
-
-                      // alert("updated for " + selected_option)
-                  },
-                  complete: function() {
-                    $('#loading').hide();
-                  },
-                  error: function(error) {
-                      $('#loading').hide();
-                      alert('Something went wrong!');
-                  }
-              });
-          });
-      });
-    </script>
-
-    <!-- RECALCULATE DATA -->
-     <script>
-      $(document).ready(function() {
-        $('#recalculate-btn').click(function() {
-            var resultCode = $('#resultCode').text();
-            var prcyld = $('#prcyld').val();
-            var trddte = $('#trddte').val();
-            var isudate = $('#isudate').text();
-            var matdate = $('#matdate').text();
-            // var exrtday = $('#exrtday').text();
-            var exrtday = $('#exrtday').val()
-            var freqncy = $('#freqncy').text();
-            var dscrptn = $('#dscrptn').text();
-            var parvalu = $('#parvalu').text();
-
-            $.ajax({
-                type: 'POST',
-                url: '/recalculate',  // Adjust the URL as per your Flask route
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    'resultCode': resultCode,
-                    'prcyld'  : prcyld,
-                    'trddte'  : trddte,
-                    'isudate' : isudate,
-                    'matdate' : matdate,
-                    'exrtday' : exrtday,
-                    'freqncy' : freqncy,
-                    'dscrptn' : dscrptn,
-                    'parvalu' : parvalu
-                }),
-                beforeSend: function(){
-                    $("#loading").show();
-                  },
-                success: function(response) {
-                    $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
-                    $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
-                    $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
-                    $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
-
-                    // Update the table content
-                    var table = $('#Tcashflow');
-                      table.find('tbody').empty(); // Clear existing rows
-                      
-                      // Rebuild table rows with updated data
-                      for (var i = 0; i < response.cfT_rec.length; i++) {
-                          var row = $('<tr>');
-                          for (var j = 0; j < response.cfT_col.length; j++) {
-                              var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
-                              row.append(cell);
-                          }
-                          table.find('tbody').append(row);
-                      }
-
-                    // console.log('Data sent successfully');
-                    // alert('recalculation done')
-                    // Optionally handle response from Flask
-                },
-                complete: function() {
-                    $('#loading').hide();
-                  },
-                error: function(error) {
-                    $('#loading').hide();
-                    alert('Something went wrong!');
-                  }
-            });
-        });
-    });
-     </script>
-
-     <!-- Reverse for Price Yield -->
-     <script>
-      $(document).ready(function() {
-        $('#reverso-btn').click(function() {
-            var resultCode = $('#resultCode').text();
-            var reverso = $('#reverso').val();
-            if(!reverso) {
-              alert("Please input the Price to reverse");
-              return;
+            // Add the placeholder option
+            $('#code').append('<option value="" disabled selected>Choose your bond</option>');
+            // Rebuild options based on updated data
+            for (var i = 0; i < response.codes.length; i++) {
+              var option = $('<option>').attr('value', response.codes[i]).text(response.codes[i]);
+              select.append(option);
             }
 
-            var trddte = $('#trddte').val();
-            var isudate = $('#isudate').text();
-            var matdate = $('#matdate').text();
-            var exrtday = $('#exrtday').val();
-            var freqncy = $('#freqncy').text();
-            var dscrptn = $('#dscrptn').text();
-            var parvalu = $('#parvalu').text();
+            // Update the table content
+            var table = $('#Tcashflow');
+            table.find('tbody').empty(); // Clear existing rows
 
-            $.ajax({
-                type: 'POST',
-                url: '/reverso',  // Adjust the URL as per your Flask route
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    'resultCode': resultCode,
-                    'reverso'  : reverso,
-                    'trddte'  : trddte,
-                    'isudate' : isudate,
-                    'matdate' : matdate,
-                    'exrtday' : exrtday,
-                    'freqncy' : freqncy,
-                    'dscrptn' : dscrptn,
-                    'parvalu' : parvalu
-                }),
-                beforeSend: function(){
-                    $("#loading").show();
-                  },
-                success: function(response) {
-                  $('#reversoyld').html('Yield reversed (domestic): ' + response.pry_solution + '%');
-                  $('#reversoyld_inter').html('Yield reversed (international): ' + response.pry_solution_int + '%')
+            // Rebuild table rows with updated data
+            for (var i = 0; i < response.cfT_rec.length; i++) {
+              var row = $('<tr>');
+              for (var j = 0; j < response.cfT_col.length; j++) {
+                var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
+                row.append(cell);
+              }
+              table.find('tbody').append(row);
+            }
 
-                  console.log('Data sent successfully');
-                  // Optionally handle response from Flask
-                },
-                complete: function() {
-                    $('#loading').hide();
-                  },
-                error: function(error) {
-                    $('#loading').hide();
-                    alert('Something went wrong!');
-                }
-            });
+            // alert("updated for " + selected_option)
+          },
+          complete: function () {
+            $('#loading').hide();
+          },
+          error: function (error) {
+            $('#loading').hide();
+            alert('Something went wrong!');
+          }
         });
+      });
     });
-     </script>
+  </script>
 
-    <style>
-      #loading {
-          font-size: 24px;          /* Increase font size */
-          color: blue;             /* Set text color */
-          /*background-color: red;     Set background color */
-          /*padding: 20px;             Add some padding for space inside the div */
-          /* border-radius: 10px;      /* Make the corners rounded */
-          /*text-align: center;       /* Center the text */
-          /*width: 200px;             /* Set a specific width */
-          margin: 0 auto;           /* Center the div horizontally */
-      }
-    </style>
+  <!-- RECALCULATE DATA -->
+  <script>
+    $(document).ready(function () {
+      // For the first input and button
+      $('#input1').keydown(function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();  // Prevent default behavior
+          $('#button1').click();  // Trigger button1 click
+        }
+      });
 
-    
-  </body>
+      // For the second input and button
+      $('#input2').keydown(function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();  // Prevent default behavior
+          $('#button2').click();  // Trigger button2 click
+        }
+      });
+    });
+
+    $(document).ready(function () {
+      $('#recalculate-btn').click(function () {
+        var resultCode = $('#resultCode').text();
+        var prcyld = $('#prcyld').val();
+        var trddte = $('#trddte').val();
+        var isudate = $('#isudate').text();
+        var matdate = $('#matdate').text();
+        // var exrtday = $('#exrtday').text();
+        var exrtday = $('#exrtday').val()
+        var freqncy = $('#freqncy').text();
+        var dscrptn = $('#dscrptn').text();
+        var parvalu = $('#parvalu').text();
+
+        $.ajax({
+          type: 'POST',
+          url: '/recalculate',  // Adjust the URL as per your Flask route
+          contentType: 'application/json',
+          data: JSON.stringify({
+            'resultCode': resultCode,
+            'prcyld': prcyld,
+            'trddte': trddte,
+            'isudate': isudate,
+            'matdate': matdate,
+            'exrtday': exrtday,
+            'freqncy': freqncy,
+            'dscrptn': dscrptn,
+            'parvalu': parvalu
+          }),
+          beforeSend: function () {
+            $("#loading").show();
+          },
+          success: function (response) {
+            $('#ptd').html('Trading Price :  ' + response.ptd + '  VND');
+            $('#abr').html('Absolute cash return after Tax : ' + response.abr + ' %')
+            $('#d_nxt').html('Next coupon Date : ' + response.d_nxt);
+            $('#prv_xdt').html('Past X right day : ' + response.prv_xdt)
+
+            // Update the table content
+            var table = $('#Tcashflow');
+            table.find('tbody').empty(); // Clear existing rows
+
+            // Rebuild table rows with updated data
+            for (var i = 0; i < response.cfT_rec.length; i++) {
+              var row = $('<tr>');
+              for (var j = 0; j < response.cfT_col.length; j++) {
+                var cell = $('<td>').text(response.cfT_rec[i][response.cfT_col[j]]);
+                row.append(cell);
+              }
+              table.find('tbody').append(row);
+            }
+
+            // console.log('Data sent successfully');
+            // alert('recalculation done')
+            // Optionally handle response from Flask
+          },
+          complete: function () {
+            $('#loading').hide();
+          },
+          error: function (error) {
+            $('#loading').hide();
+            alert('Something went wrong!');
+          }
+        });
+      });
+    });
+  </script>
+
+  <!-- Reverse for Price Yield -->
+  <script>
+    $(document).ready(function () {
+      $('#reverso-btn').click(function () {
+        var resultCode = $('#resultCode').text();
+        var reverso = $('#reverso').val();
+        if (!reverso) {
+          alert("Please input the Price to reverse");
+          return;
+        }
+
+        var trddte = $('#trddte').val();
+        var isudate = $('#isudate').text();
+        var matdate = $('#matdate').text();
+        var exrtday = $('#exrtday').val();
+        var freqncy = $('#freqncy').text();
+        var dscrptn = $('#dscrptn').text();
+        var parvalu = $('#parvalu').text();
+
+        $.ajax({
+          type: 'POST',
+          url: '/reverso',  // Adjust the URL as per your Flask route
+          contentType: 'application/json',
+          data: JSON.stringify({
+            'resultCode': resultCode,
+            'reverso': reverso,
+            'trddte': trddte,
+            'isudate': isudate,
+            'matdate': matdate,
+            'exrtday': exrtday,
+            'freqncy': freqncy,
+            'dscrptn': dscrptn,
+            'parvalu': parvalu
+          }),
+          beforeSend: function () {
+            $("#loading").show();
+          },
+          success: function (response) {
+            $('#reversoyld').html('Yield reversed (domestic): ' + response.pry_solution + '%');
+            $('#reversoyld_inter').html('Yield reversed (international): ' + response.pry_solution_int + '%')
+
+            console.log('Data sent successfully');
+            // Optionally handle response from Flask
+          },
+          complete: function () {
+            $('#loading').hide();
+          },
+          error: function (error) {
+            $('#loading').hide();
+            alert('Something went wrong!');
+          }
+        });
+      });
+    });
+  </script>
+
+  <style>
+    #loading {
+      font-size: 24px;
+      /* Increase font size */
+      color: blue;
+      /* Set text color */
+      /*background-color: red;     Set background color */
+      /*padding: 20px;             Add some padding for space inside the div */
+      /* border-radius: 10px;      /* Make the corners rounded */
+      /*text-align: center;       /* Center the text */
+      /*width: 200px;             /* Set a specific width */
+      margin: 0 auto;
+      /* Center the div horizontally */
+    }
+  </style>
+
+
+</body>
+
 </html>
