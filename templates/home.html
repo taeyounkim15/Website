@@ -19,6 +19,7 @@
       <div class="row">  
         <div class="col">
           <select class="form-select form-select-lg mb-3" name="code" id="code"> Choose the Bond Code :
+            <option value="" disabled selected>Choose your bond</option>  <!-- Placeholder option -->
             {% for code in codes %}
               <option value="{{ code }}">{{ code }}</option>
             {% endfor %}
@@ -189,6 +190,8 @@
                       var select = $('#code');
                       select.empty(); // Clear existing options
                       
+                      // Add the placeholder option
+                      $('#code').append('<option value="" disabled selected>Choose your bond</option>');
                       // Rebuild options based on updated data
                       for (var i = 0; i < response.codes.length; i++) {
                           var option = $('<option>').attr('value', response.codes[i]).text(response.codes[i]);
